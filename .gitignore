@@ -399,3 +399,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# DLLS
+# Ignore all DLL files inside the ArcaxerDLLS folder
+ZerosCustomItemLoaderMelonFlavouredQuest/ArcaxerDLLS/*.dll
+
+# Keep the folder itself tracked using a placeholder file
+!ZerosCustomItemLoaderMelonFlavouredQuest/ArcaxerDLLS/.gitkeep
