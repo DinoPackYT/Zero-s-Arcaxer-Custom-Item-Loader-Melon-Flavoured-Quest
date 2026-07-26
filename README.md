@@ -1,6 +1,8 @@
 # Zero's Arcaxer Custom Item Loader - Melon Flavoured (Quest)
 A custom item loader mod for Arcaxer for use with MelonLoader. This build specifically is made for the Quest version of the game.
 
+Please report any bugs either here on GitHub or to Discord user `dino.pack`.
+
 # Installation:
 1. Download [LemonLoader](https://github.com/LemonLoader/MelonLoader/releases/latest) and side-load it onto your Quest device. (Developer Mode must be enabled.)
 2. Using a file manager (such as SideQuest), back up the following folders and all files:
