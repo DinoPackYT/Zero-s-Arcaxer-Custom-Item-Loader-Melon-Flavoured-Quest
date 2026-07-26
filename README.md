@@ -3,6 +3,8 @@ A custom item loader mod for Arcaxer for use with MelonLoader. This build specif
 
 Please report any bugs either here on GitHub or to Discord user `dino.pack`.
 
+Please note: This mod does not include any custom items by itself. Please use [Zero's Arcaxer Custom Item Creator](https://dino-pack.gitlab.io/Zero-s-Arcaxer-Custom-Item-Creator/) to make your own mods. A database for modapcks will be created... later.
+
 # Installation:
 1. Download [LemonLoader](https://github.com/LemonLoader/MelonLoader/releases/latest) and side-load it onto your Quest device. (Developer Mode must be enabled.)
 2. Using a file manager (such as SideQuest), back up the following folders and all files:
