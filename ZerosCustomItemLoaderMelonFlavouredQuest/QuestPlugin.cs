@@ -33,6 +33,9 @@ namespace ZerosCustomItemLoader
             Directory.CreateDirectory(Path.Combine(CustomItemsFolderPath, "consumables"));
             Directory.CreateDirectory(Path.Combine(CustomItemsFolderPath, "key_items"));
 
+            // Initialize the subfolder structure for non-weapon equips
+            EquipItemLoader.Initialize(CustomItemsFolderPath);
+
             HarmonyInstance.PatchAll(MelonAssembly.Assembly);
             MelonLogger.Msg("[Zero's Item Loader] Harmony patches applied!");
         }
@@ -83,7 +86,6 @@ namespace ZerosCustomItemLoader
 
             try
             {
-                // searches all passives in the game
                 var passives = Resources.FindObjectsOfTypeAll<PassiveAbility>();
                 if (passives != null && passives.Length > 0)
                 {
@@ -91,15 +93,12 @@ namespace ZerosCustomItemLoader
                     {
                         if (p == null) continue;
 
-                        // check public field directly
                         if (!string.IsNullOrEmpty(p.abilityName) && p.abilityName.Equals(targetPassiveName, StringComparison.OrdinalIgnoreCase))
                             return p;
 
-                        // check internal asset name
                         if (!string.IsNullOrEmpty(p.name) && p.name.Equals(targetPassiveName, StringComparison.OrdinalIgnoreCase))
                             return p;
 
-                        // check getter property
                         try
                         {
                             if (!string.IsNullOrEmpty(p.translatedName) && p.translatedName.Equals(targetPassiveName, StringComparison.OrdinalIgnoreCase))
@@ -248,7 +247,7 @@ namespace ZerosCustomItemLoader
         }
         #endregion
 
-        // load asstes during gameLoad with Harmony
+        // load assets during gameLoad with Harmony
         [HarmonyPatch(typeof(PersistentData), nameof(PersistentData.loadGame))]
         public static class RegistrationPatch
         {
@@ -258,11 +257,14 @@ namespace ZerosCustomItemLoader
                 if (__instance == null || _itemsRegistered) return;
                 if (!Directory.Exists(CustomItemsFolderPath)) return;
 
-                string[] jsonFiles = Directory.GetFiles(CustomItemsFolderPath, "*.json", SearchOption.AllDirectories);
-                MelonLogger.Msg($"[Zero's Item Loader] Scanning custom item folder... Found {jsonFiles.Length} JSON file(s).");
-
                 CustomItemsList.Clear();
                 LoadedCustomItems.Clear();
+
+                // run equip loader
+                EquipItemLoader.LoadAllEquips();
+
+                string[] jsonFiles = Directory.GetFiles(CustomItemsFolderPath, "*.json", SearchOption.AllDirectories);
+                MelonLogger.Msg($"[Zero's Item Loader] Scanning custom item folder... Found {jsonFiles.Length} JSON file(s).");
 
                 foreach (string jsonPath in jsonFiles)
                 {
@@ -321,11 +323,11 @@ namespace ZerosCustomItemLoader
                 }
 
                 _itemsRegistered = true;
-                MelonLogger.Msg($"[Zero's Item Loader] Successfully cached {CustomItemsList.Count} custom items safely in managed memory!");
+                MelonLogger.Msg($"[Zero's Item Loader] Successfully cached {LoadedCustomItems.Count} custom items safely in managed memory!");
             }
         }
 
-        // intercept resoruces.load with harmony
+        // intercept resources.load with harmony
         [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[] { typeof(string), typeof(Il2CppSystem.Type) })]
         public static class ResourcesLoadPatch
         {

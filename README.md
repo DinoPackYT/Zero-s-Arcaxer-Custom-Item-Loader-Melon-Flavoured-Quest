@@ -36,3 +36,6 @@ Please note: This mod does not include any custom items by itself. Please use [Z
   - UnityEngine.JSONSerializeModule.dll (/Il2CppAssemblies)
   - UnityEngine.TextRenderingModule.dll (/Il2CppAssemblies)
 - I will not be providing these files out of respect (and likely legality?) but they are in your copy of the game. They go in the empty ArcaxerDLLS folder in the project folder.
+
+# AI Disclosure:
+Due to my inexperience with MelonLoader, Harmony, and C#, AI was used to help support development, mostly by debugging and assisting with parts of the project I was not familiar with or understanding the code from Arcaxer. All code was reviewed by a human. I hope this is acceptable.
