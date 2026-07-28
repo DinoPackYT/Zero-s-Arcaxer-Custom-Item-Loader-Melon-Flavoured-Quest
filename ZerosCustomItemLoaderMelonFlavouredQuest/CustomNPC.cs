@@ -18,7 +18,7 @@ namespace ArcaxerCustomNPCMod
         public static CustomNPCSpawner Instance { get; private set; }
 
         private const string TargetSceneName = "HubWorld";
-        private const string CustomNPCName = "Merchant_Mysterious";
+        private const string CustomNPCName = "Merchant_Modded";
         private static readonly Vector3 SpawnPosition = new Vector3(98f, 0f, 78f);
         private static readonly Quaternion SpawnRotation = Quaternion.Euler(0f, 180f, 0f);
 
@@ -57,12 +57,34 @@ namespace ArcaxerCustomNPCMod
             // Wait one frame for default scene setup
             yield return null;
 
-            // 1. Find template NPC
-            NPCOverworld templateNPC = FindObjectOfType<NPCOverworld>();
+            // find actual shopkeep (usually reggie)
+            NPCOverworld[] allNpcs = FindObjectsOfType<NPCOverworld>();
+            NPCOverworld reggieTemplate = null;
+            NPCOverworld interactionTemplate = null;
 
-            if (templateNPC == null)
+            foreach (var npc in allNpcs)
             {
-                MelonLogger.Warning($"[CustomNPCSpawner] No NPCOverworld template found in '{TargetSceneName}'.");
+                if (npc != null)
+                {
+                    if (reggieTemplate == null && npc.shopkeeper)
+                    {
+                        reggieTemplate = npc;
+                    }
+                    // find first non shop npc (usually bored entity)
+                    if (interactionTemplate == null && !npc.shopkeeper)
+                    {
+                        interactionTemplate = npc;
+                    }
+                }
+            }
+
+            // Fallbacks if strict types aren't matched
+            if (reggieTemplate == null && allNpcs.Length > 0) reggieTemplate = allNpcs[0];
+            if (interactionTemplate == null && allNpcs.Length > 0) interactionTemplate = allNpcs[0];
+
+            if (interactionTemplate == null || reggieTemplate == null)
+            {
+                MelonLogger.Warning($"[CustomNPCSpawner] Missing required NPC templates in '{TargetSceneName}'.");
                 yield break;
             }
 
@@ -72,32 +94,29 @@ namespace ArcaxerCustomNPCMod
                 yield break;
             }
 
-            // 2. Clone the GameObject
-            GameObject newNPCObj = Instantiate(templateNPC.gameObject, SpawnPosition, SpawnRotation);
+            // clone the first dialogue npc it finds (likely Bored Entity)
+            GameObject newNPCObj = Instantiate(interactionTemplate.gameObject, SpawnPosition, SpawnRotation);
             newNPCObj.name = CustomNPCName;
 
-            // 3. Configure NPCOverworld
+            // config new NPC
             NPCOverworld newNPC = newNPCObj.GetComponent<NPCOverworld>();
             if (newNPC != null)
             {
-                // --- SET CUSTOM NPC NAME ---
-                newNPC.NPCName = "Mysterious Merchant";
+                newNPC.NPCName = "Modded Merchant";
 
-                // --- SET CUSTOM DIALOGUE ---
-                if (templateNPC.originalDialogue != null)
+                // dialogue should never appear but im scared to delete these lines just in case
+                // i have no idea what actually made it work (spawning a clone of reggie didnt allow me to interact with him so??)
+                if (interactionTemplate.originalDialogue != null)
                 {
-                    // Clone and protect the Dialogue ScriptableObject
-                    Dialogue clonedDialogue = Instantiate(templateNPC.originalDialogue);
+                    Dialogue clonedDialogue = Instantiate(interactionTemplate.originalDialogue);
                     DontDestroyOnLoad(clonedDialogue);
 
-                    // Duplicate the first DialogueLine asset
                     if (clonedDialogue.dialogueTextEnglish != null && clonedDialogue.dialogueTextEnglish.Length > 0)
                     {
                         DialogueLine clonedLine = Instantiate(clonedDialogue.dialogueTextEnglish[0]);
                         DontDestroyOnLoad(clonedLine);
 
-                        // Modify line text & behavior
-                        clonedLine.dialogueString = "Looking for something out of the ordinary? Check my stock!";
+                        clonedLine.dialogueString = "Looking for a modded items?";
                         clonedLine.rotateToPlayer = true;
                         clonedLine.waitForInteraction = true;
                         clonedLine.nameChange = false;
@@ -110,12 +129,7 @@ namespace ArcaxerCustomNPCMod
                     newNPC.questCompleteDialogue = clonedDialogue;
                 }
 
-                // --- CONVERT TO SHOPKEEPER ---
-                newNPC.shopkeeper = true;
-                newNPC.sideQuestHub = false;
-                newNPC.npcStoryEvent = null;
-
-                // --- POPULATE ONLY CUSTOM MODDED ITEMS ---
+                // make custom stock list using all custom items
                 var customStock = new Il2CppSystem.Collections.Generic.List<Item>();
 
                 if (Plugin.LoadedCustomItems != null && Plugin.LoadedCustomItems.Count > 0)
@@ -127,20 +141,19 @@ namespace ArcaxerCustomNPCMod
                             customStock.Add(customItem);
                         }
                     }
-                    MelonLogger.Msg($"[CustomNPCSpawner] Loaded {customStock.Count} custom items into shop stock!");
-                }
-                else
-                {
-                    MelonLogger.Warning("[CustomNPCSpawner] Plugin.LoadedCustomItems is empty! Make sure items are loaded before visiting HubWorld.");
                 }
 
-                // Set active stock list
+                // inject reggie's npc shop data
+                // i probably dont HAVE to do this, but doing it manually either a) didnt work or b) crashed the game
+                // this actually WORKED so lets not break it more.
+                newNPC.shopkeeper = true;
+                newNPC.sideQuestHub = false;
+                newNPC.npcStoryEvent = null;
                 newNPC.shopInventory = customStock;
 
-                // --- CONFIGURE SHOP TAB SO UI DOES NOT OVERWRITE INVENTORY ---
-                if (templateNPC.shopInventories != null && templateNPC.shopInventories.Length > 0)
+                if (reggieTemplate.shopInventories != null && reggieTemplate.shopInventories.Length > 0)
                 {
-                    ShopInventory customTab = Instantiate(templateNPC.shopInventories[0]);
+                    ShopInventory customTab = Instantiate(reggieTemplate.shopInventories[0]);
                     DontDestroyOnLoad(customTab);
 
                     customTab.shopItems = customStock;
@@ -151,7 +164,6 @@ namespace ArcaxerCustomNPCMod
                     newNPC.shopInventories = new ShopInventory[] { customTab };
                 }
 
-                // Clear out end dialogue events
                 if (newNPC.onDialogueEnd != null)
                 {
                     newNPC.onDialogueEnd.RemoveAllListeners();
@@ -159,7 +171,7 @@ namespace ArcaxerCustomNPCMod
             }
 
             newNPCObj.SetActive(true);
-            MelonLogger.Msg($"[CustomNPCSpawner] Successfully spawned {CustomNPCName} ('{newNPC.NPCName}') as Shopkeeper at {SpawnPosition}");
+            MelonLogger.Msg($"[CustomNPCSpawner] Successfully spawned merchant with shop data at {SpawnPosition}");
         }
     }
 }

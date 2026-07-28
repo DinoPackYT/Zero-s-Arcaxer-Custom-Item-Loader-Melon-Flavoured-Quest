@@ -37,6 +37,9 @@
 		<Reference Include="UnityEngine.ImageConversionModule">
 			<HintPath>$(MSBuildProjectDirectory)\ArcaxerDLLS\UnityEngine.ImageConversionModule.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.IMGUIModule">
+		  <HintPath>ArcaxerDLLS\UnityEngine.IMGUIModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.JSONSerializeModule">
 			<HintPath>$(MSBuildProjectDirectory)\ArcaxerDLLS\UnityEngine.JSONSerializeModule.dll</HintPath>
 		</Reference>
