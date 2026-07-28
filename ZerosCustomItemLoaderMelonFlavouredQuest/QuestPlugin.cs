@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using ArcaxerCustomNPCMod;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -38,6 +39,10 @@ namespace ZerosCustomItemLoader
 
             HarmonyInstance.PatchAll(MelonAssembly.Assembly);
             MelonLogger.Msg("[Zero's Item Loader] Harmony patches applied!");
+
+            CustomNPCSpawner.Initialize();
+
+            MelonLogger.Msg("Custom NPC Spawner successfully registered!");
         }
 
         #region JSON Data Contracts
