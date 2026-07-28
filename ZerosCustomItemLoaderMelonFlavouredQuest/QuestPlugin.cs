@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ZerosCustomItemLoader.Plugin), "Zero's Custom Item Loader (Quest)", "1.0.1", "Zero")]
+[assembly: MelonInfo(typeof(ZerosCustomItemLoader.Plugin), "Zero's Custom Item Loader (Quest)", "1.2.0", "Zero")]
 [assembly: MelonGame(null, null)]
 
 namespace ZerosCustomItemLoader
